@@ -1,0 +1,90 @@
+---
+title: "Script_for_DFA_data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+** READING IN DATA**
+
+```{r}
+library(tidyverse)
+library(plyr)
+  
+#Reading in files (copy paste for more samples and rename conditions)
+sample1 <- read_csv(file=("C:/BRIC/Fibre/20181113/Progression/unc.csv")) %>% 
+  mutate(Condition = "UNC")
+
+sample2 <- read_csv(file=("C:/BRIC/Fibre/20181113/Progression/CyF.csv")) %>% 
+  mutate(Condition = "siCyF")
+
+#Binding samples together in one table 
+data <- bind_rows(sample1,sample2) %>%
+  select(Condition, Length) %>%
+  group_by(Condition) %>%
+  dplyr::mutate(IdU_Length = (Length/10)) %>%
+  dplyr::mutate(Rate = (IdU_Length/(0.33*20)))
+
+data_stats_Length <- ddply(data, "Condition", summarise, IdU_mean=mean(IdU_Length), IdU_median = median(IdU_Length), IdU_SD = sd(IdU_Length), IdU_min = min(IdU_Length), IdU_max = max(IdU_Length))
+
+data_stats_Rate <- ddply(data, "Condition", summarise, Rate_hmean=mean(Rate), Rate_median = median(Rate), Rate_SD = sd(Rate), Rate_min = min(Rate), Rate_max = max(Rate))
+
+#data_um$Condition <- factor(data_um$Condition, levels = c("UNC", "siCyF"))
+
+data_stats <- bind_cols(data_stats_Length, data_stats_Rate)
+
+data_stats
+
+```
+
+```{r}
+#Plotting the data
+library(magrittr)
+library(ggplot2)
+library(ggpubr)
+library(ggpval)
+
+my_boxplot <- ggboxplot(data, x = "Rate",
+                        y = "Rate",
+                       combine = F,
+                        color = "Rate", palette = c("#00AFBB", "#E7B800"),
+                        fill = "white",
+                        order = c("UNC", "siCyF"),
+                        ylim=c(0:20),
+                        ylab = "Fork speed, kb/min",
+                        title="",
+                        legend="right",
+                        xlab=FALSE,
+                        legend.title = " ") + rremove("x.ticks") + rremove("x.text") +
+                        stat_compare_means(comparisons = list(c("UNC", "siCyF")), paired = F, label = "p.signif")
+
+my_boxplot
+
+my_histogram <- gghistogram(data, x="IdU_Length", color ="Condition", 
+                            fill = "Condition", palette = c("#00AFBB", "#E7B800"), alpha = 0.8, bins = 20,  bindwith = 1,
+                            legend.title = " ", legend = "right", ylab = "Count, #", xlab = "Idu Lenght, um", add = "mean", 
+                            ylim= c(0, 80), 
+                            add.params = list(size =1.5, linetype = "dashed", color = "Condition", fill = "Black")) +
+                            geom_density(aes(color = Condition), size = 1) 
+
+my_histogram
+
+
+
+
+```
+
+```{r}
+#my_histogram <- ggplot(data_um, aes(x=IdU_Length, fill = Condition, color = Condition)) +
+                     #geom_histogram(binwidth = 1, bins = 19, alpha=1, position="identity") +
+                     #scale_color_brewer(palette="Dark2")+
+                     #scale_fill_brewer(palette="Dark2") +
+                     #geom_vline(data=data_stats, aes(xintercept=IdU_median, color= Condition,), linetype="dashed", size =2) +
+                     #labs(title="", x="IdU,um", y = "Count,#") +
+                     #theme_classic()
+  
+#my_histogram
+```
+
