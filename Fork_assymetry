@@ -1,0 +1,23 @@
+## read your samples in with read_csv. Call them sampleA1 and sampleA2 ## 
+
+Combine: 
+
+dataA <- bind_rows(sampleA1, sampleA2) %>% 
+  select(Experiment, Condition, Treatment, Length) %>% 
+  group_by(Condition, Experiment, Treatment)
+
+fiberOne <- dataA %>% 
+  filter(row_number() %% 2 == 0) %>% 
+  transmute("fiberOne" = Length)
+fiberTwo <- dataA %>% 
+  filter(row_number() %% 2 == 1) %>%
+  transmute("fiberTwo" = Length)
+   
+datatable_A <- 
+  cbind(fiberOne,fiberTwo) %>% 
+  select(fiberOne, fiberTwo) %>% 
+  transmute(longest = pmax(fiberOne,fiberTwo),
+            shortest = pmin(fiberOne,fiberTwo)) %>% 
+  mutate(assymetry = longest/shortest)
+  
+datatable_A
