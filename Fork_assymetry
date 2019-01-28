@@ -1,5 +1,10 @@
 ## read your samples in with read_csv. Call them sampleA1 and sampleA2 ## 
-
+e.g. 
+sampleA1 <- read_csv(file = "p53_exp2_unc_nt_assymetry.csv") %>% 
+  mutate(Condition = "Control",
+         Treatment = "Untreated",
+         Experiment = "p53_exp2_assymetry")  
+         
 Combine: 
 
 dataA <- bind_rows(sampleA1, sampleA2) %>% 
